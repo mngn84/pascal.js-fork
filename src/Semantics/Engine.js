@@ -3,7 +3,9 @@ import { Multiplication } from '../SyntaxAnalyzer/Tree/Multiplication.js';
 import { Subtraction } from '../SyntaxAnalyzer/Tree/Subtraction.js';
 import { Division } from '../SyntaxAnalyzer/Tree/Division.js';
 import { NumberConstant } from '../SyntaxAnalyzer/Tree/NumberConstant.js';
+import { UnaryMinus } from '../SyntaxAnalyzer/Tree/UnaryMinus.js';
 import { NumberVariable } from './Variables/NumberVariable.js';
+import { SymbolsCodes } from '../LexicalAnalyzer/SymbolsCodes.js';
 
 export class Engine
 {
@@ -29,8 +31,9 @@ export class Engine
             function(tree)
             {
                 let result = self.evaluateSimpleExpression(tree);
-                console.log(result.value);
-                self.results.push(result.value); // пишем в массив результатов
+                let value = result.value + 0;
+                console.log(value);
+                self.results.push(value); // пишем в массив результатов
             }
         );
 
@@ -62,7 +65,6 @@ export class Engine
         if (expression instanceof Multiplication) {
             let leftOperand = this.evaluateTerm(expression.left);
             let rightOperand = this.evaluateTerm(expression.right);
-
             let result = leftOperand.value * rightOperand.value;
 
             return new NumberVariable(result);
@@ -71,6 +73,18 @@ export class Engine
             let rightOperand = this.evaluateTerm(expression.right);
             let result = leftOperand.value / rightOperand.value;
 
+            return new NumberVariable(result);
+        } else {
+            return this.evaluateUnaryMinus(expression);
+        }
+    }
+
+    evaluateUnaryMinus(expression)
+    {     
+        if (expression instanceof UnaryMinus) {
+            let rightOperand = this.evaluateMultiplier(expression.right);            
+            let result = - rightOperand.value;
+        
             return new NumberVariable(result);
         } else {
             return this.evaluateMultiplier(expression);

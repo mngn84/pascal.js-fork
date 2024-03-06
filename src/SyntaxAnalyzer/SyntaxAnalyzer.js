@@ -3,6 +3,7 @@ import { Division } from './Tree/Division.js';
 import { Addition } from './Tree/Addition.js';
 import { Subtraction } from './Tree/Subtraction.js';
 import { NumberConstant } from './Tree/NumberConstant.js';
+import { UnaryMinus } from './Tree/UnaryMinus.js';
 import { SymbolsCodes } from '../LexicalAnalyzer/SymbolsCodes.js';
 
 /**
@@ -25,6 +26,9 @@ export class SyntaxAnalyzer
 
     accept(expectedSymbolCode)
     {
+        if ( this.symbol === null) {
+            throw `${expectedSymbolCode} expected but eol found!`;
+        }
         if (this.symbol.symbolCode === expectedSymbolCode) {
             this.nextSym();
         } else {
@@ -78,7 +82,7 @@ export class SyntaxAnalyzer
     // Разбор слагаемого
     scanTerm()
     {
-        let term = this.scanMultiplier();
+        let term = this.scanUnaryMinus();
         let operationSymbol = null;
 
         while ( this.symbol !== null && (
@@ -91,15 +95,29 @@ export class SyntaxAnalyzer
 
             switch (operationSymbol.symbolCode) {
                 case SymbolsCodes.star:
-                    term = new Multiplication(operationSymbol, term, this.scanMultiplier());
+                    term = new Multiplication(operationSymbol, term, this.scanUnaryMinus());
                     break;
                 case SymbolsCodes.slash:
-                    term = new Division(operationSymbol, term, this.scanMultiplier());
+                    term = new Division(operationSymbol, term, this.scanUnaryMinus());
                     break;
             }
         }
 
         return term;
+    }
+    //Проверка на унарный минус
+    scanUnaryMinus() {
+        if (this.symbol !== null && this.symbol.symbolCode === SymbolsCodes.minus) { 
+            let unMinus = this.symbol;
+            this.nextSym();
+
+            let negMultiplier = new UnaryMinus(unMinus, this.scanMultiplier())
+            
+            return negMultiplier;
+        }else{
+            
+            return this.scanMultiplier();
+        }
     }
     // Разбор множителя
     scanMultiplier()
