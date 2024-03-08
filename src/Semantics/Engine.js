@@ -5,7 +5,7 @@ import { Division } from '../SyntaxAnalyzer/Tree/Division.js';
 import { NumberConstant } from '../SyntaxAnalyzer/Tree/NumberConstant.js';
 import { UnaryMinus } from '../SyntaxAnalyzer/Tree/UnaryMinus.js';
 import { NumberVariable } from './Variables/NumberVariable.js';
-import { SymbolsCodes } from '../LexicalAnalyzer/SymbolsCodes.js';
+import { Parentheses } from '../SyntaxAnalyzer/Parentheses.js';
 
 export class Engine
 {
@@ -32,7 +32,7 @@ export class Engine
             {
                 let result = self.evaluateSimpleExpression(tree);
                 let value = result.value + 0;
-                console.log(value);
+
                 self.results.push(value); // пишем в массив результатов
             }
         );
@@ -82,15 +82,27 @@ export class Engine
     evaluateUnaryMinus(expression)
     {     
         if (expression instanceof UnaryMinus) {
-            let rightOperand = this.evaluateMultiplier(expression.right);            
+            let rightOperand = this.evaluateParentheses(expression.right);            
             let result = - rightOperand.value;
         
             return new NumberVariable(result);
         } else {
-            return this.evaluateMultiplier(expression);
+            return this.evaluateParentheses(expression);
         }
     }
 
+    evaluateParentheses(expression)
+    {
+        if (expression instanceof Parentheses) {
+            let engine = new Engine(expression.symbol);
+            engine.run();
+            
+            return new NumberVariable(engine.results[0]);
+        } else {
+            return this.evaluateMultiplier(expression);
+        }
+    }
+    
     evaluateMultiplier(expression)
     {
         if (expression instanceof NumberConstant) {
@@ -99,4 +111,5 @@ export class Engine
             throw 'Number Constant expected.';
         }
     }
+
 };

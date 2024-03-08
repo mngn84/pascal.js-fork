@@ -4,6 +4,7 @@ import { Addition } from './Tree/Addition.js';
 import { Subtraction } from './Tree/Subtraction.js';
 import { NumberConstant } from './Tree/NumberConstant.js';
 import { UnaryMinus } from './Tree/UnaryMinus.js';
+import { Parentheses } from './Parentheses.js';
 import { SymbolsCodes } from '../LexicalAnalyzer/SymbolsCodes.js';
 
 /**
@@ -111,11 +112,24 @@ export class SyntaxAnalyzer
             let unMinus = this.symbol;
             this.nextSym();
 
-            let negMultiplier = new UnaryMinus(unMinus, this.scanMultiplier())
+            let negMultiplier = new UnaryMinus(unMinus, this.scanParentheses())
             
             return negMultiplier;
         }else{
             
+            return this.scanParentheses();
+        }
+    }
+    //Разбор скобок
+    scanParentheses() {
+        if (this.symbol !== null && this.symbol.symbolCode === SymbolsCodes.opening) {
+            this.nextSym();
+            
+            let subtree = [this.scanExpression()];
+            this.accept(SymbolsCodes.closing);
+            
+            return new Parentheses(subtree);
+        }else{
             return this.scanMultiplier();
         }
     }

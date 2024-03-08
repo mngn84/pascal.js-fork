@@ -26,3 +26,7 @@ let trees = syntaxAnalyzer.trees;
 
 let engine = new Engine(trees);
 engine.run();
+
+engine.results.forEach((item, i) => {
+    console.log(engine.results[i])
+});
