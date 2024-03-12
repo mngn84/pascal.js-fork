@@ -1,5 +1,5 @@
-import { FileIO } from '../IO/FileIO.js';
 import { IntegerConstant } from '../LexicalAnalyzer/Symbols/IntegerConstant.js';
+import { Identifier } from '../LexicalAnalyzer/Symbols/Identifier.js'
 import { Symbol } from '../LexicalAnalyzer/Symbols/Symbol.js';
 import { SymbolsCodes } from './SymbolsCodes.js';
 
@@ -57,7 +57,7 @@ export class LexicalAnalyzer
                 this.char = this.fileIO.nextCh();
             }
 
-            return this.getSymbol(SymbolsCodes.identifier);
+            return new Identifier(SymbolsCodes.identifier, this.currentWord);
 
         } else if (/\n/.exec(this.char) !== null) {
             this.char = this.fileIO.nextCh();

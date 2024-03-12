@@ -1,4 +1,4 @@
-import { TreeNodeBase } from "./Tree/TreeNodeBase.js";
+import { TreeNodeBase } from "./TreeNodeBase.js";
 
 export class Parentheses extends TreeNodeBase
 {

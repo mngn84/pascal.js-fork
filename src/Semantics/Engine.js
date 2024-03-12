@@ -3,9 +3,12 @@ import { Multiplication } from '../SyntaxAnalyzer/Tree/Multiplication.js';
 import { Subtraction } from '../SyntaxAnalyzer/Tree/Subtraction.js';
 import { Division } from '../SyntaxAnalyzer/Tree/Division.js';
 import { NumberConstant } from '../SyntaxAnalyzer/Tree/NumberConstant.js';
+import { Variable } from '../SyntaxAnalyzer/Tree/Variable.js';
 import { UnaryMinus } from '../SyntaxAnalyzer/Tree/UnaryMinus.js';
 import { NumberVariable } from './Variables/NumberVariable.js';
-import { Parentheses } from '../SyntaxAnalyzer/Parentheses.js';
+import { Equality } from './Variables/Equality.js';
+import { Parentheses } from '../SyntaxAnalyzer/Tree/Parentheses.js';
+import { Assignment } from '../SyntaxAnalyzer/Tree/Assignment.js';
 
 export class Engine
 {
@@ -20,6 +23,7 @@ export class Engine
     {
         this.trees = trees;
         this.results = [];
+        this.variables = {};
     }
 
     run()
@@ -28,12 +32,17 @@ export class Engine
 
         this.trees.forEach(
 
-            function(tree)
-            {
+            function(tree, i)
+            {   self.counter = i; 
+                
                 let result = self.evaluateSimpleExpression(tree);
-                let value = result.value + 0;
-
-                self.results.push(value); // пишем в массив результатов
+                
+                if (result.variable) {
+                    console.log(result.variable + ' = ' + result.value);
+                } else {
+                    console.log(result.value + 0);
+                }   
+                self.results.push(result.value); // пишем в массив результатов
             }
         );
 
@@ -94,21 +103,46 @@ export class Engine
     evaluateParentheses(expression)
     {
         if (expression instanceof Parentheses) {
-            let engine = new Engine(expression.symbol);
-            engine.run();
-            
-            return new NumberVariable(engine.results[0]);
+           
+            let result = new NumberVariable(this.evaluateSimpleExpression(expression.symbol));
+            return result.value
+        } else {
+            return this.evaluateAssignment(expression);
+        }
+    }
+    
+    evaluateAssignment(expression)
+    {
+        if (expression instanceof Assignment) {
+            let variables = this.variables;
+            let variable = expression.left;
+           
+            let value = this.evaluateSimpleExpression(expression.right)
+            variables[variable.value] = value.value;
+
+            return new Equality(variable.value, value.value);
         } else {
             return this.evaluateMultiplier(expression);
         }
     }
-    
     evaluateMultiplier(expression)
-    {
-        if (expression instanceof NumberConstant) {
-            return new NumberVariable(expression.symbol.value);
+    {   if (expression instanceof Variable) {
+            let variable = expression.symbol.value;
+            
+            if (variable in this.variables) {
+                let result = this.variables[variable];
+
+                return new NumberVariable(result);
+            } else {
+                throw `${variable} on line ${this.counter + 1} is not defined!`
+            }
         } else {
-            throw 'Number Constant expected.';
+            if (expression instanceof NumberConstant) {
+                
+                return new NumberVariable(expression.symbol.value);
+            } else {
+                throw 'Variable or Number Constant expected.';
+            }
         }
     }
 

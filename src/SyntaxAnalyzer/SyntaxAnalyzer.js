@@ -3,8 +3,10 @@ import { Division } from './Tree/Division.js';
 import { Addition } from './Tree/Addition.js';
 import { Subtraction } from './Tree/Subtraction.js';
 import { NumberConstant } from './Tree/NumberConstant.js';
+import { Variable } from './Tree/Variable.js';
 import { UnaryMinus } from './Tree/UnaryMinus.js';
-import { Parentheses } from './Parentheses.js';
+import { Parentheses } from './Tree/Parentheses.js';
+import { Assignment } from './Tree/Assignment.js';
 import { SymbolsCodes } from '../LexicalAnalyzer/SymbolsCodes.js';
 
 /**
@@ -108,7 +110,7 @@ export class SyntaxAnalyzer
     }
     //Проверка на унарный минус
     scanUnaryMinus() {
-        if (this.symbol !== null && this.symbol.symbolCode === SymbolsCodes.minus) { 
+        if (this.symbol.symbolCode === SymbolsCodes.minus) { 
             let unMinus = this.symbol;
             this.nextSym();
 
@@ -122,24 +124,52 @@ export class SyntaxAnalyzer
     }
     //Разбор скобок
     scanParentheses() {
-        if (this.symbol !== null && this.symbol.symbolCode === SymbolsCodes.opening) {
+        if (this.symbol.symbolCode === SymbolsCodes.opening) {
             this.nextSym();
             
-            let subtree = [this.scanExpression()];
+            let subtree = this.scanExpression();
             this.accept(SymbolsCodes.closing);
             
             return new Parentheses(subtree);
         }else{
+           return this.scanVariable();
+        }
+    }
+    // Разбор переменной
+    scanVariable() {       
+        if (this.symbol.symbolCode === SymbolsCodes.identifier) {
+            let variable = this.symbol;
+
+            this.accept(SymbolsCodes.identifier);
+            let operator = this.symbol.stringValue;
+
+            if (operator === SymbolsCodes.equal) {
+                return this.scanAssignment(operator, variable);
+            } else {
+                return new Variable(variable);
+            }
+        } else {   
             return this.scanMultiplier();
         }
     }
-    // Разбор множителя
-    scanMultiplier()
-    {
-        let integerConstant = this.symbol;
+    //Разбор присвоения
+    scanAssignment(symbol,  left) {
+       let variable = left;
+       let operator = symbol;
+       this.nextSym();
+       let value = this.scanExpression();
 
-        this.accept(SymbolsCodes.integerConst);
-
-        return new NumberConstant(integerConstant);
+       return new Assignment(operator, variable, value);
     }
+    // Разбор множителя
+    scanMultiplier() {       
+            let integerConstant = this.symbol;
+            
+            this.accept(SymbolsCodes.integerConst);
+
+            return new NumberConstant(integerConstant);
+        }
+    
 };
+
+
