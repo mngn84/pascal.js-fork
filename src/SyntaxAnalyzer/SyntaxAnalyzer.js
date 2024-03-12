@@ -152,7 +152,7 @@ export class SyntaxAnalyzer
             return this.scanMultiplier();
         }
     }
-    //Разбор присвоения
+    //Разбор присваивания
     scanAssignment(symbol,  left) {
        let variable = left;
        let operator = symbol;
